@@ -49,7 +49,7 @@ def clip_bg_global(roi, grad_thresh=0.5, VERBOSE=True):
   # print found local maxima
   if VERBOSE:
     print(
-        f'({i}, {j}) - histogram: Found {len(x_local_maxima_hist_roi)} local maxima '
+        f'(Found {len(x_local_maxima_hist_roi)} local maxima '
         f'at {x_local_maxima_hist_roi} with values {hist_roi_filtered[x_local_maxima_hist_roi]}'
     )
 
@@ -80,102 +80,6 @@ def clip_bg_global(roi, grad_thresh=0.5, VERBOSE=True):
     x_thresh = 500
   else:
     x_thresh = floor(x_thresh[0] + x_grad_minimum)
-
-  return x_thresh
-
-def clib_bg_global_experimental(roi, grad_thresh=0.5, VERBOSE=True, PLOT=False):
-  """
-  :param grad_thresh: this determines the aggressiveness of thresholding. the smaller the more background will be cut out
-  """
-
-  # calculate histogram
-  bins = 256 if img.dtype == np.uint8 else 65536
-  if bins == 256:
-    print('WARNING: 8-bit type input image!')
-
-  hist_roi, bin_edges = np.histogram(roi, bins=bins, range=(0, bins))
-
-  # smooth out histogram
-  # 101 in 16 bit is still only half a color step in 8 bit images
-  if img.dtype == np.uint16:
-    hist_roi_filtered = scipy.signal.medfilt(hist_roi, 255)
-  elif img.dtype == np.uint8:
-    hist_roi_filtered = scipy.signal.medfilt(hist_roi, 2)
-  else:
-    raise ValueError('Unsupported data type!')
-
-  # find indices of local maxima in the histogram
-
-  #try to find peaks with the highes prominence possible
-  x_local_maxima_hist_roi = []
-  prom = 30
-  while len(x_local_maxima_hist_roi) == 0 and prom >= 0:
-    x_local_maxima_hist_roi, _ = scipy.signal.find_peaks(hist_roi_filtered[:np.floor(bins * 0.99).astype(np.uint)], prominence=prom)
-    prom -= 1
-
-  if len(x_local_maxima_hist_roi) == 0:
-    if VERBOSE:
-      print('WARNING: No maximum in histogram!')
-    return 0
-
-  # print found local maxima
-  if VERBOSE:
-    print(
-        f'({i}, {j}) - histogram: Found {len(x_local_maxima_hist_roi)} local maxima '
-        f'at {x_local_maxima_hist_roi} with values {hist_roi_filtered[x_local_maxima_hist_roi]}'
-    )
-
-  # choose the rightmost peak in the histogram, i.e. with highest index
-  x_background_peak = np.max(x_local_maxima_hist_roi)
-
-
-
-
-  # calculate gradient of histogram
-  grad_roi = np.gradient(hist_roi_filtered)
-
-  # filter -> this is only to be used for thresholding
-  grad_roi_filtered = scipy.signal.medfilt(grad_roi, 101)
-
-
-  k = np.ones(np.floor(2 * bins / 256).astype(np.uint))
-  grad_roi_cumulated = np.convolve(grad_roi, k)
-  grad_roi_cumulated_filtered = scipy.signal.savgol_filter(grad_roi_cumulated, 101, 3)
-
-  grad_roi_to_use = grad_roi_cumulated_filtered
-
-
-  # find the negative peak in the gradient
-  # that is the the point of interest closest to the threshold
-  # this peak is going to be more to the right than the histogram peak
-  x_grad_minimum = np.argmin(grad_roi_to_use[x_background_peak:]) + x_background_peak
-  y_grad_minimum = grad_roi_to_use[x_grad_minimum]
-
-  # calculate threshold vor the gradient based on the negative peak
-  # rather include more background that is later filtered out at gaussian adaptive thresholding
-  y_thresh = y_grad_minimum * grad_thresh
-  x_thresh = np.argwhere(grad_roi_to_use[x_grad_minimum:] > y_thresh)
-
-  if len(x_thresh) == 0:
-    x_thresh = 500
-  else:
-    x_thresh = floor(x_thresh[0] + x_grad_minimum)
-
-  # plot everything
-  if PLOT:
-    fig, ax = plt.subplots(1, 1, figsize=(25, 10))
-
-    # which section to display
-    plot_window = slice(0, 50000)
-
-
-    ax.plot(bin_edges[1:][plot_window], hist_roi_filtered[plot_window], label='hist')
-    ax2 = ax.twinx()
-    ax2.plot(bin_edges[1:][plot_window], grad_roi_to_use[plot_window], label='grad', color='green')
-    ax2.set_yscale('symlog')
-    ax.axvline(x_thresh, linestyle='-', color='r')
-    ax.axvline(x_grad_minimum, linestyle='-', color='black')
-    ax.set_yscale('symlog')
 
   return x_thresh
 
@@ -218,7 +122,7 @@ def find_holes(img, HOLE_AGGRESSIVENESS = 2, VERBOSE=False):
   if bins == 256:
     print('WARNING: 8-bit type input image!')
 
-  hist_roi, _ = np.histogram(r, bins=bins, range=(0, bins))
+  hist_roi, _ = np.histogram(img, bins=bins, range=(0, bins))
 
   # smooth out histogram
   # 101 in 16 bit is still only half a color step in 8 bit images
@@ -275,7 +179,7 @@ def find_holes(img, HOLE_AGGRESSIVENESS = 2, VERBOSE=False):
   hole_peak_value += bins // 256 * HOLE_AGGRESSIVENESS
 
   # apply threshold to the image
-  channel_thresh = r.copy()
+  channel_thresh = img.copy()
   channel_thresh[channel_thresh < hole_peak_value] = 255
   channel_thresh[channel_thresh >= hole_peak_value] = 0
 
