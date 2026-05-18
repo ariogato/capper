@@ -36,9 +36,8 @@ class Image:
       self.capillaries = capillaries
       self.hole_mask = hole_mask
 
-  def __init__(self, descriptor, filepath, img):
+  def __init__(self, descriptor, filepath):
     """
-    :param category: brain, heart, kidney, muscle
     """
 
     self.descriptor = descriptor
@@ -46,8 +45,8 @@ class Image:
     self.x_scale = 0.1624808538555503
     self.y_scale = 0.1624808538555503
 
-    self.img = img
-    self.img_auto_thresh = np.zeros_like(img)
+    self.img = cv.imread(filepath, cv.IMREAD_UNCHANGED)
+    self.img_auto_thresh = np.zeros_like(self.img)
     self.hole_mask = np.zeros_like(self.img).astype(np.uint8)
 
     self.capillaries: list[Image.Capillary] = []
@@ -81,6 +80,9 @@ class Image:
     self.tiles = None
     self.analyzed_area_px2 = 0
     self.hole_area_px2 = 0
+
+  def clear_img(self):
+    self.img = None
 
 def add_offset(contour, offset):
   """
