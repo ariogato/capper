@@ -94,6 +94,10 @@ class GroupingApp:
             messagebox.showwarning("No TIFF Files", "No .tif or .tiff files found.")
             return
 
+        out_dir = os.path.join(self.image_directory, 'output')
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+
         self.file_listbox.delete(0, tk.END)
 
         for file in self.tif_files:
