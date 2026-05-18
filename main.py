@@ -76,8 +76,8 @@ class GroupingApp:
         self.select_directory()
 
     def select_directory(self):
-        #self.image_directory = filedialog.askdirectory(title="Select Directory Containing TIFF Files")
-        self.image_directory = './images/'
+        self.image_directory = filedialog.askdirectory(title="Select Directory Containing TIFF Files")
+        #self.image_directory = './images/'
 
         if not self.image_directory:
             self.root.destroy()
