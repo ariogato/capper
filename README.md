@@ -1,5 +1,3 @@
-# Coming soon
-
 # CAPPER
 
 **CAPPER** (**Cap**illary / **Per**icyte Quantification Tool) is a Python-based image analysis tool designed for automatic quantification of capillary density and pericyte coverage in microscopy images.
@@ -36,8 +34,33 @@ pip install -r requirements.txt
 
 ## Usage
 
-Run the main script
+### 1. Run the main script
 ```bash
 python main.py
 ```
 
+### 2. Select a Folder
+When the program starts, a file dialog will open. Choose a directory that contains .tif or .tiff files. The main window will then display all TIFF files in the folder.
+
+### 3. Create Groups
+
+To create a group:
+
+1. Select one or multiple TIFF files from the left list
+2. Enter a group name in the input field on the right
+3. Click “Create Group”
+
+The group will appear in the right panel.
+
+### 4. View Groups
+On the right side, you will see:
+
+- Group names
+- Number of files per group
+- Files inside each group
+
+### 5. Run Processing
+
+When you are done grouping:
+
+Click the RUN button. When the algorithm is done, the result will appear in a newly created `output` directory.
